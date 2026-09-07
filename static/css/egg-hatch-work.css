@@ -1,0 +1,338 @@
+/* ==========================================================================
+   egg-hatch-work.css
+   作品詳細ページ専用のスタイル。
+   :root の色トークン（--eh-ink 等）と .eggHatchCard / .eggHatchTag /
+   .eggHatchProgress はトップページ側の egg-hatch.css をそのまま再利用します。
+   このファイルは新規追加のみで、egg-hatch.css の既存ルールは変更していません。
+   ========================================================================== */
+
+body.eggWorkBody {
+  margin: 0;
+  background-color: var(--eh-cream, #f3eadc);
+  font-family: 'Noto Sans JP', sans-serif;
+}
+
+/* --- ナビゲーション --- */
+.eggWorkNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px;
+  border-bottom: 1px solid var(--eh-line, rgba(43,38,32,0.16));
+  background: var(--eh-paper, #fffbf2);
+}
+
+.eggWorkNavHome {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--eh-ink, #2b2620);
+  font-family: 'Noto Serif JP', serif;
+  font-weight: 900;
+  font-size: 16px;
+}
+
+.eggWorkNavLogo {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.eggWorkNavBack {
+  font-size: 13px;
+  color: var(--eh-gold, #8A6A00);
+  text-decoration: none;
+}
+.eggWorkNavBack:hover { text-decoration: underline; }
+
+.eggWorkNavRight {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* --- ページ全体 --- */
+.eggWorkPage {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 32px 28px 96px;
+}
+
+.eggWorkLoading {
+  text-align: center;
+  color: var(--eh-text-muted, #4A4A4A);
+  padding: 80px 0;
+}
+
+/* --- ヘッダーブロック（タイトル・ステータス） --- */
+.eggWorkHead {
+  margin-bottom: 32px;
+}
+
+.eggWorkStatus {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border: 1px solid var(--eh-gold-bright, #e0982a);
+  color: var(--eh-gold-bright, #e0982a);
+  margin-bottom: 12px;
+}
+
+.eggWorkStatus--idea    { border-color: #8a8a4a; color: #8a8a4a; }
+.eggWorkStatus--recruit { border-color: var(--eh-gold-bright, #e0982a); color: var(--eh-gold-bright, #e0982a); }
+.eggWorkStatus--progress{ border-color: var(--eh-gold, #8A6A00); color: var(--eh-gold, #8A6A00); }
+.eggWorkStatus--completed{ border-color: #2f7d4f; color: #2f7d4f; }
+
+.eggWorkTitle {
+  margin: 0 0 10px;
+  font-family: 'Noto Serif JP', serif;
+  font-weight: 900;
+  font-size: 30px;
+  color: var(--eh-ink, #2b2620);
+  line-height: 1.3;
+}
+
+.eggWorkTheme {
+  margin: 0 0 12px;
+  font-size: 15px;
+  color: var(--eh-text-muted, #4A4A4A);
+}
+
+/* --- レイアウト：本文＋サイドバー --- */
+.eggWorkLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 32px;
+  align-items: start;
+}
+
+.eggWorkBlock {
+  background: var(--eh-paper, #fffbf2);
+  border: 2px solid var(--eh-ink, #2b2620);
+  padding: 22px 24px;
+  margin-bottom: 24px;
+  box-shadow: 3px 3px 0 rgba(43, 38, 32, 0.08);
+}
+
+.eggWorkBlockTitle {
+  margin: 0 0 12px;
+  font-family: 'Noto Serif JP', serif;
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--eh-ink, #2b2620);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.eggWorkBlockTitle::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: var(--eh-gold-bright, #e0982a);
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.eggWorkBlockText {
+  font-size: 14px;
+  line-height: 1.9;
+  color: #333;
+  white-space: pre-line;
+}
+
+/* --- キャラクター設定 --- */
+.eggWorkCharacters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.eggWorkCharacterCard {
+  border: 1px solid var(--eh-line, rgba(43,38,32,0.16));
+  padding: 12px;
+}
+
+.eggWorkCharacterName {
+  margin: 0 0 2px;
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--eh-ink, #2b2620);
+}
+
+.eggWorkCharacterRole {
+  margin: 0 0 6px;
+  font-size: 11px;
+  color: var(--eh-gold, #8A6A00);
+}
+
+.eggWorkCharacterDesc {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--eh-text-muted, #4A4A4A);
+}
+
+/* --- 応募作品一覧（詳細ページ内では件数＋簡易プレビュー） --- */
+.eggWorkApplicationsCount {
+  font-size: 13px;
+  color: var(--eh-text-muted, #4A4A4A);
+  margin-bottom: 12px;
+}
+.eggWorkApplicationsCount strong {
+  color: var(--eh-gold, #8A6A00);
+  font-size: 16px;
+}
+
+.eggWorkApplicationRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-top: 1px dashed var(--eh-line, rgba(43,38,32,0.16));
+  font-size: 13px;
+}
+.eggWorkApplicationRow:first-of-type { border-top: none; }
+
+/* --- サイドバー --- */
+.eggWorkSideCard {
+  background: var(--eh-paper, #fffbf2);
+  border: 2px solid var(--eh-ink, #2b2620);
+  padding: 18px 18px 20px;
+  margin-bottom: 20px;
+  box-shadow: 3px 3px 0 rgba(43, 38, 32, 0.08);
+}
+
+.eggWorkSideTitle {
+  margin: 0 0 12px;
+  font-family: 'Noto Serif JP', serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--eh-ink, #2b2620);
+}
+
+.eggWorkRoleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-top: 1px solid var(--eh-line, rgba(43,38,32,0.16));
+  font-size: 13px;
+}
+.eggWorkRoleRow:first-of-type { border-top: none; }
+
+.eggWorkApplyBtn {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  padding: 10px;
+  text-align: center;
+  background: var(--eh-ink, #2b2620);
+  color: var(--eh-paper, #fffbf2);
+  font-weight: 700;
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+}
+.eggWorkApplyBtn:hover { background: var(--eh-gold, #8A6A00); }
+
+.eggWorkApplyNote {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: var(--eh-text-muted, #4A4A4A);
+  text-align: center;
+}
+
+.eggWorkTeamRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+}
+
+.eggWorkTeamAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid var(--eh-ink, #2b2620);
+  background: linear-gradient(135deg, #f0d9a0, #e0982a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Noto Serif JP', serif;
+  font-weight: 900;
+  font-size: 12px;
+  color: var(--eh-paper, #fffbf2);
+  flex-shrink: 0;
+}
+
+.eggWorkTeamName {
+  font-size: 12.5px;
+  color: var(--eh-ink, #2b2620);
+  font-weight: 700;
+}
+.eggWorkTeamRoleLabel {
+  font-size: 11px;
+  color: var(--eh-text-muted, #4A4A4A);
+}
+
+.eggWorkTeamEmpty {
+  font-size: 12.5px;
+  color: var(--eh-text-muted, #4A4A4A);
+  line-height: 1.7;
+}
+
+/* --- レスポンシブ --- */
+@media (max-width: 860px) {
+  .eggWorkLayout {
+    grid-template-columns: 1fr;
+  }
+  .eggWorkPage {
+    padding: 20px 16px 64px;
+  }
+  .eggWorkTitle {
+    font-size: 24px;
+  }
+}
+
+/* ==========================================================================
+   追加：画面共通の「進み具合」表示（作品詳細／応募／選考／制作スペースの4画面で使用）
+   「今どの段階か」が一目で分かるよう、簡単な現在地表示を追加しています。
+   ========================================================================== */
+
+.eggFlowSteps {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 11.5px;
+  color: var(--eh-text-muted, #4A4A4A);
+  margin-bottom: 16px;
+}
+
+.eggFlowStep {
+  padding: 2px 0;
+}
+
+.eggFlowStep.is-current {
+  color: var(--eh-ink, #2b2620);
+  font-weight: 700;
+  border-bottom: 2px solid var(--eh-gold-bright, #e0982a);
+}
+
+.eggFlowStepSep {
+  color: var(--eh-line, rgba(43,38,32,0.3));
+  margin: 0 2px;
+}
+
+.eggFlowGuide {
+  background: rgba(224, 152, 42, 0.08);
+  border-left: 3px solid var(--eh-gold-bright, #e0982a);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--eh-ink, #2b2620);
+  line-height: 1.7;
+  margin-bottom: 22px;
+}

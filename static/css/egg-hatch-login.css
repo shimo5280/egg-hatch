@@ -1,0 +1,61 @@
+/* ==========================================================================
+   egg-hatch-login.css
+   ログイン／新規登録ページの専用スタイル。
+   :root の色トークン、.eggWorkNav、.eggApplyTypeBtn、.eggWorkBlock などは
+   既存のCSSを再利用します。新規追加のみです。
+   ========================================================================== */
+
+.eggLoginPage {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 32px 24px 96px;
+}
+
+.eggLoginTabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.eggLoginPanel {
+  display: none;
+}
+.eggLoginPanel.is-active {
+  display: block;
+}
+
+/* --- 全ページ共通：ナビ右側のログイン状態表示 --- */
+.eggAuthStatus {
+  font-size: 12.5px;
+  color: var(--eh-text-muted, #4A4A4A);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.eggAuthStatus a,
+.eggAuthStatus button {
+  color: var(--eh-gold, #8A6A00);
+  text-decoration: none;
+  background: none;
+  border: none;
+  font-size: 12.5px;
+  cursor: pointer;
+  padding: 0;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.eggAuthStatus a:hover,
+.eggAuthStatus button:hover {
+  text-decoration: underline;
+}
+
+/* トップページには .eggWorkNav が無いため、右上固定の簡易表示にする */
+.eggAuthStatus--floating {
+  position: fixed;
+  top: 14px;
+  right: 18px;
+  z-index: 20;
+  background: var(--eh-paper, #fffbf2);
+  border: 1px solid var(--eh-line, rgba(43,38,32,0.2));
+  padding: 6px 12px;
+}

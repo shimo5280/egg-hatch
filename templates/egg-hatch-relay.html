@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>番外編 -リレー漫画- | EGG HATCH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+
+<!-- 本編の色トークン・フォント定義だけ再利用する。本編のCSSは変更していない -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/egg-hatch.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/egg-hatch-relay.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/egg-hatch-crosslink.css') }}">
+</head>
+<body class="eggRelayBody">
+<div class="eggCrossBanner eggCrossBanner--toMain">ここはEGG HATCH番外編です <a href="/">本編トップへ →</a></div>
+
+  <header class="eggRelayNav">
+    <a class="eggRelayNavHome" href="/">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="EGG HATCH" class="eggRelayNavLogo">
+      <span>EGG HATCH<span class="eggRelayBadge">番外編</span></span>
+    </a>
+    <div class="eggRelayNavRight">
+      <a class="eggRelayNavBack" href="/">EGG HATCH本編へ →</a>
+      <span class="eggAuthStatus" id="eggAuthStatus"></span>
+    </div>
+  </header>
+
+  <main class="eggRelayMain">
+
+    <div class="eggRelayIntro">
+      <strong>番外編 -リレー漫画-</strong> は、続きを競うコンテストではありません。<br>
+      春夏秋冬、季節ごとに運営が1つのテーマを発表し、そのテーマから
+      Aさんが描いた続きをBさんが受け取り、Bさんの続きをCさんが受け取り……というように、
+      知らない人同士でバトンをつなぎ、1本の短編漫画を一緒に完成させていく<strong>公式リレー企画</strong>です。<br>
+      プロもアマチュアも関係なく、誰でも同じ条件で参加できます。<br>
+      前の人の世界観をどう受け止め、どうつないでいくか——発想力・コマ割り・構成力・絵の表現など、
+      本編とはまた違う個性が自然に見える場所にしたいと思っています。
+    </div>
+
+    <div id="eggRelaySeasonBox">
+      <p class="eggRelayEmpty">読み込んでいます…</p>
+    </div>
+
+    <div id="eggRelayAdminLinkBox" style="margin-bottom:20px;"></div>
+
+    <div id="eggRelayMangaList"></div>
+
+    <div id="eggRelayArchive"></div>
+
+  </main>
+
+<script src="{{ url_for('static', filename='js/egg-hatch-auth.js') }}?v=1"></script>
+<script>document.addEventListener("DOMContentLoaded", () => EggAuth.initAuthStatus("eggAuthStatus"));</script>
+<script src="{{ url_for('static', filename='js/egg-hatch-relay.js') }}?v=1"></script>
+</body>
+</html>

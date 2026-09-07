@@ -1,0 +1,134 @@
+/* ==========================================================================
+   egg-hatch-profile.css
+   クリエイタープロフィールページの専用スタイル。
+   :root の色トークン、.eggWorkNav、.eggHatchShelf / .eggHatchCard /
+   .eggHatchTag（トップページの部品）を再利用します。新規追加のみです。
+   ========================================================================== */
+
+.eggProfilePage {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 32px 24px 96px;
+}
+
+/* --- プロフィールヘッダー --- */
+.eggProfileHead {
+  background: var(--eh-paper, #fffbf2);
+  border: 2px solid var(--eh-ink, #2b2620);
+  box-shadow: 3px 3px 0 rgba(43, 38, 32, 0.08);
+  padding: 28px 30px;
+  margin-bottom: 30px;
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.eggProfileAvatar {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  border: 2.5px solid var(--eh-ink, #2b2620);
+  background: linear-gradient(135deg, #f0d9a0, #e0982a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Noto Serif JP', serif;
+  font-weight: 900;
+  font-size: 28px;
+  color: var(--eh-paper, #fffbf2);
+  flex-shrink: 0;
+}
+
+.eggProfileName {
+  margin: 0 0 4px;
+  font-family: 'Noto Serif JP', serif;
+  font-weight: 900;
+  font-size: 24px;
+  color: var(--eh-ink, #2b2620);
+}
+
+.eggProfileHandle {
+  margin: 0 0 14px;
+  font-size: 12.5px;
+  color: var(--eh-text-muted, #4A4A4A);
+}
+
+/* 「私の世界観」— プロフィールの中心要素として大きく引用符付きで見せる */
+.eggProfileWorldview {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 16px;
+  line-height: 1.9;
+  color: var(--eh-ink, #2b2620);
+  margin: 0;
+  padding-left: 14px;
+  border-left: 3px solid var(--eh-gold-bright, #e0982a);
+}
+
+/* --- タグ行（得意分野／やりたい役割／ジャンル） --- */
+.eggProfileTagBlock {
+  background: var(--eh-paper, #fffbf2);
+  border: 2px solid var(--eh-ink, #2b2620);
+  box-shadow: 3px 3px 0 rgba(43, 38, 32, 0.08);
+  padding: 20px 24px;
+  margin-bottom: 30px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.eggProfileTagGroupLabel {
+  font-family: 'Noto Serif JP', serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--eh-ink, #2b2620);
+  margin: 0 0 8px;
+}
+
+/* --- 作品リストのセクション見出し（トップページと同じ体裁） --- */
+.eggProfileSection {
+  margin-bottom: 40px;
+}
+
+.eggProfileSectionTitle {
+  font-family: 'Noto Serif JP', serif;
+  font-weight: 900;
+  font-size: 18px;
+  color: var(--eh-ink, #2b2620);
+  margin: 0 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--eh-line, rgba(43,38,32,0.16));
+}
+
+.eggProfileEmpty {
+  font-size: 12.5px;
+  color: var(--eh-text-muted, #4A4A4A);
+}
+
+/* 過去の提出作品カード：完成作品カードと形は同じだが、採否のステータスを乗せる */
+.eggProfileSubmissionStatus {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 6px;
+  background: var(--eh-paper, #fffbf2);
+  border: 1px solid currentColor;
+}
+.eggProfileSubmissionStatus--accepted { color: #2f7d4f; }
+.eggProfileSubmissionStatus--pending  { color: #8a8a4a; }
+.eggProfileSubmissionStatus--declined { color: #9a9a9a; }
+
+@media (max-width: 640px) {
+  .eggProfileHead {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .eggProfileWorldview {
+    text-align: left;
+  }
+  .eggProfileTagBlock {
+    grid-template-columns: 1fr;
+  }
+}

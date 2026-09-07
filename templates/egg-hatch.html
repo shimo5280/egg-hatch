@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>EGG HATCH | 漫画の金の卵を見つけよう</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+
+ <link rel="stylesheet" href="{{ url_for('static', filename='css/egg-hatch.css') }}">
+
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/egg-hatch-crosslink.css') }}">
+</head>
+<body>
+<div class="eggCrossBanner eggCrossBanner--toRelay">📖 番外編 -リレー漫画- 公開中：みんなで一本の漫画をつなぐ公式リレー企画 <a href="egg-hatch-relay.html">見てみる →</a></div>
+ <div class="eggHatchBackground">
+  <span class="eggAuthStatus--floating" id="eggAuthStatus"></span>
+
+  <img
+    class="eggHatchBgImage"
+    src="{{ url_for('static', filename='images/background.png') }}"
+    alt=""
+  >
+ 
+  <img
+    class="eggHatchLogo"
+    src="{{ url_for('static', filename='images/logo.png') }}"
+    alt="EGG HATCH"
+  >
+  
+  <h1 class="eggHatchTitle"> 未来の漫画へー金の卵を発掘しよう♪</h1>
+  <p class="eggHatchDescription">「自分の世界観をアイデアに変えて、仲間とひとつの作品へ育てていく場所。」</p>
+   </div>
+
+  <!-- ▼▼▼ ここから追加：トップページ中身セクション ▼▼▼ -->
+  <main class="eggHatchMain">
+
+    <!-- ▼ 追加：作品／アイデア投稿ページへの導線 -->
+    <div class="eggHatchCta">
+      <p class="eggHatchCtaText">完成した原作がなくても大丈夫。世界観やアイデアだけでも投稿できます。</p>
+      <a class="eggHatchCtaBtn" href="egg-hatch-submit.html">＋ 作品／アイデアを投稿する</a>
+    </div>
+
+    <section class="eggHatchSection" id="newWorks" data-section="new">
+      <div class="eggHatchSectionHead">
+        <span class="eggHatchSectionMark" aria-hidden="true">★</span>
+        <div>
+          <h2 class="eggHatchSectionTitle">新着作品</h2>
+          <p class="eggHatchSectionSub">生まれたばかりの世界観たち</p>
+        </div>
+      </div>
+      <div class="eggHatchShelf" id="newWorksShelf"></div>
+    </section>
+
+    <section class="eggHatchSection" id="recruitingWorks" data-section="recruiting">
+      <div class="eggHatchSectionHead">
+        <span class="eggHatchSectionMark" aria-hidden="true">✎</span>
+        <div>
+          <h2 class="eggHatchSectionTitle">募集中の作品</h2>
+          <p class="eggHatchSectionSub">今、あなたの才能を待っている作品</p>
+        </div>
+      </div>
+      <div class="eggHatchGrid" id="recruitingWorksGrid"></div>
+    </section>
+
+    <section class="eggHatchSection" id="inProgressWorks" data-section="progress">
+      <div class="eggHatchSectionHead">
+        <span class="eggHatchSectionMark" aria-hidden="true">🖋</span>
+        <div>
+          <h2 class="eggHatchSectionTitle">制作中の作品</h2>
+          <p class="eggHatchSectionSub">仲間と一緒に、少しずつ孵化に向かって</p>
+        </div>
+      </div>
+      <div class="eggHatchGrid" id="inProgressWorksGrid"></div>
+    </section>
+
+    <section class="eggHatchSection" id="completedWorks" data-section="completed">
+      <div class="eggHatchSectionHead">
+        <span class="eggHatchSectionMark" aria-hidden="true">◎</span>
+        <div>
+          <h2 class="eggHatchSectionTitle">完成作品</h2>
+          <p class="eggHatchSectionSub">仲間の手で孵化した作品たち</p>
+        </div>
+      </div>
+      <div class="eggHatchShelf" id="completedWorksShelf"></div>
+    </section>
+
+    <section class="eggHatchSection" id="popularWorks" data-section="popular">
+      <div class="eggHatchSectionHead">
+        <span class="eggHatchSectionMark" aria-hidden="true">♦</span>
+        <div>
+          <h2 class="eggHatchSectionTitle">人気作品</h2>
+          <p class="eggHatchSectionSub">今、多くの才能が集まっている作品</p>
+        </div>
+      </div>
+      <div class="eggHatchShelf" id="popularWorksShelf"></div>
+    </section>
+
+    <section class="eggHatchSection" id="newCreators" data-section="creators">
+      <div class="eggHatchSectionHead">
+        <span class="eggHatchSectionMark" aria-hidden="true">✒</span>
+        <div>
+          <h2 class="eggHatchSectionTitle">新着クリエイター</h2>
+          <p class="eggHatchSectionSub">それぞれの世界観を持つ、新しい才能</p>
+        </div>
+      </div>
+      <div class="eggHatchShelf" id="newCreatorsShelf"></div>
+    </section>
+
+  </main>
+  <!-- ▲▲▲ ここまで追加 ▲▲▲ -->
+
+<script src="{{ url_for('static', filename='js/egg-hatch-auth.js') }}?v=1"></script>
+<script>document.addEventListener("DOMContentLoaded", () => EggAuth.initAuthStatus("eggAuthStatus"));</script>
+<script src="{{ url_for('static', filename='js/egg-hatch.js') }}?v=8"></script>
+
+</body>
+</html>

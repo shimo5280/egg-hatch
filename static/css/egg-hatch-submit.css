@@ -1,0 +1,127 @@
+/* ==========================================================================
+   egg-hatch-submit.css
+   作品／アイデア投稿ページの専用スタイル。
+   :root の色トークン、.eggWorkNav、.eggWorkBlock、.eggApplyInput/.eggApplyTextarea/
+   .eggApplyHint/.eggApplyError/.eggWorkApplyBtn（応募ページ側の部品）を再利用します。
+   新規追加のみです。
+   ========================================================================== */
+
+.eggSubmitPage {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 28px 96px;
+}
+
+.eggSubmitRequired {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--eh-gold-bright, #e0982a);
+  padding: 1px 7px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.eggSubmitOptional {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--eh-text-muted, #4A4A4A);
+  margin-left: 4px;
+}
+
+/* --- ジャンル選択（チップ型チェックボックス） --- */
+.eggSubmitGenreGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.eggSubmitGenreChip {
+  display: inline-block;
+}
+
+.eggSubmitGenreChip input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.eggSubmitGenreChip span {
+  display: inline-block;
+  font-size: 12.5px;
+  padding: 6px 14px;
+  border: 1.5px solid var(--eh-line, rgba(43,38,32,0.25));
+  color: var(--eh-ink, #2b2620);
+  cursor: pointer;
+}
+
+.eggSubmitGenreChip input:checked + span {
+  background: var(--eh-ink, #2b2620);
+  border-color: var(--eh-ink, #2b2620);
+  color: var(--eh-paper, #fffbf2);
+}
+
+/* --- 繰り返し項目（キャラクター／募集役割） --- */
+.eggSubmitRepeatRow {
+  border: 1.5px solid var(--eh-line, rgba(43,38,32,0.2));
+  padding: 14px;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.eggSubmitRepeatRow .eggApplyInput,
+.eggSubmitRepeatRow .eggApplyTextarea {
+  margin-bottom: 8px;
+}
+.eggSubmitRepeatRow .eggApplyInput:last-child,
+.eggSubmitRepeatRow .eggApplyTextarea:last-child {
+  margin-bottom: 0;
+}
+
+.eggSubmitRemoveBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  border: none;
+  background: none;
+  color: var(--eh-text-muted, #4A4A4A);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+.eggSubmitRemoveBtn:hover { color: #a33; }
+
+.eggSubmitAddBtn {
+  border: 1.5px dashed var(--eh-line, rgba(43,38,32,0.3));
+  background: none;
+  color: var(--eh-gold, #8A6A00);
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 9px;
+  width: 100%;
+  cursor: pointer;
+}
+.eggSubmitAddBtn:hover { border-color: var(--eh-gold, #8A6A00); }
+
+/* --- 募集期限 --- */
+.eggSubmitDeadlineRow {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  font-size: 13px;
+}
+
+.eggSubmitRadioLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+#eggSubmitDeadlineDate {
+  width: auto;
+}
+#eggSubmitDeadlineDate:disabled {
+  opacity: 0.4;
+}

@@ -1,0 +1,88 @@
+"""
+EGG HATCH - HTML画面を配信するルート
+
+これまでの works.py / files.py / profiles.py / auth.py は、すべてJSONを
+返す「API」でした。このファイルは、これまで作ったプロトタイプの画面
+(templates/ 以下のHTMLファイル)を、そのままFlaskで配信するためのものです。
+
+画面自体の中身(データの表示・フォームの送信)は、各HTMLファイルが読み込む
+JavaScript(static/js/*.js)側で、このあと作る fetch() 経由のAPI呼び出しに
+差し替えていきます。ここでは「どのURLでどのHTMLを返すか」だけを決めています。
+
+URLの形は、プロトタイプの頃から使っていた「?id=1」のようなクエリパラメータの
+形をそのまま踏襲しています(JavaScript側の書き換えを最小限にするため)。
+"""
+
+from flask import Blueprint, render_template
+
+pages_bp = Blueprint("pages", __name__)
+
+
+@pages_bp.get("/")
+@pages_bp.get("/egg-hatch.html")
+def top_page():
+    return render_template("egg-hatch.html")
+
+
+@pages_bp.get("/egg-hatch-work.html")
+def work_detail_page():
+    return render_template("egg-hatch-work.html")
+
+
+@pages_bp.get("/egg-hatch-apply.html")
+def apply_page():
+    return render_template("egg-hatch-apply.html")
+
+
+@pages_bp.get("/egg-hatch-review.html")
+def review_page():
+    return render_template("egg-hatch-review.html")
+
+
+@pages_bp.get("/egg-hatch-team.html")
+def team_page():
+    return render_template("egg-hatch-team.html")
+
+
+@pages_bp.get("/egg-hatch-profile.html")
+def profile_page():
+    return render_template("egg-hatch-profile.html")
+
+
+@pages_bp.get("/egg-hatch-submit.html")
+def submit_page():
+    return render_template("egg-hatch-submit.html")
+
+
+@pages_bp.get("/egg-hatch-login.html")
+def login_page():
+    return render_template("egg-hatch-login.html")
+
+
+# ---------------------------------------------------------------------------
+# 番外編(リレー漫画) ― 本編とは別枠の画面
+# ---------------------------------------------------------------------------
+
+@pages_bp.get("/egg-hatch-relay.html")
+def relay_top_page():
+    return render_template("egg-hatch-relay.html")
+
+
+@pages_bp.get("/egg-hatch-relay-detail.html")
+def relay_detail_page():
+    return render_template("egg-hatch-relay-detail.html")
+
+
+@pages_bp.get("/egg-hatch-relay-submit.html")
+def relay_submit_page():
+    return render_template("egg-hatch-relay-submit.html")
+
+
+@pages_bp.get("/egg-hatch-relay-review.html")
+def relay_review_page():
+    return render_template("egg-hatch-relay-review.html")
+
+
+@pages_bp.get("/egg-hatch-relay-admin.html")
+def relay_admin_page():
+    return render_template("egg-hatch-relay-admin.html")

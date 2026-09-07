@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>作品／アイデアを投稿する | EGG HATCH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+
+<!-- 共通トークン・ナビ・カード部品／フォーム部品を再利用 -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/egg-hatch.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/egg-hatch-work.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/egg-hatch-apply.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/egg-hatch-submit.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/egg-hatch-crosslink.css') }}">
+</head>
+<body class="eggWorkBody">
+<div class="eggCrossBanner eggCrossBanner--toRelay">📖 番外編 -リレー漫画- 公開中：みんなで一本の漫画をつなぐ公式リレー企画 <a href="egg-hatch-relay.html">見てみる →</a></div>
+
+  <!-- ※ トップページのエンドポイント名が不明のため href="/" を仮置きしています -->
+  <header class="eggWorkNav">
+    <a class="eggWorkNavHome" href="/">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="EGG HATCH" class="eggWorkNavLogo">
+      <span>EGG HATCH</span>
+    </a>
+    <div class="eggWorkNavRight">
+    <a class="eggWorkNavBack" href="/">← トップへ戻る</a>
+      <span class="eggAuthStatus" id="eggAuthStatus"></span>
+    </div>
+  </header>
+
+  <main class="eggSubmitPage" id="eggSubmitPage">
+
+    <div class="eggApplyHead">
+      <p class="eggApplyEyebrow">作品／アイデアを投稿する</p>
+      <h1 class="eggApplyWorkTitle">あなたの世界観を、種として蒔いてみましょう</h1>
+      <p class="eggApplyWorkTheme">完成した小説や原作がなくても大丈夫です。テーマやアイデア、短いあらすじだけでも投稿できます。空欄のままで進めて構いません。</p>
+    </div>
+
+    <form class="eggSubmitForm" id="eggSubmitForm" novalidate>
+
+      <section class="eggWorkBlock">
+        <h2 class="eggWorkBlockTitle">タイトル</h2>
+        <input class="eggApplyInput" type="text" id="eggSubmitTitle" placeholder="例：夜行バスの終点" required>
+      </section>
+
+      <section class="eggWorkBlock">
+        <h2 class="eggWorkBlockTitle">テーマ</h2>
+        <p class="eggApplyHint">この作品が扱っている、一言でのテーマです。</p>
+        <input class="eggApplyInput" type="text" id="eggSubmitTheme" placeholder="例：一夜だけの匿名性">
+      </section>
+
+      <section class="eggWorkBlock">
+        <h2 class="eggWorkBlockTitle">短いアイデア <span class="eggSubmitRequired">必須</span></h2>
+        <p class="eggApplyHint">思いついたきっかけや、頭にある光景だけでも構いません。</p>
+        <textarea class="eggApplyTextarea" id="eggSubmitIdea" rows="3" placeholder="例：終電を逃した見知らぬ5人が、始発を待つ間に語り出す小さな秘密の物語。" required></textarea>
+      </section>
+
+      <section class="eggWorkBlock">
+        <h2 class="eggWorkBlockTitle">あらすじ<span class="eggSubmitOptional">（任意）</span></h2>
+        <textarea class="eggApplyTextarea" id="eggSubmitSynopsis" rows="4" placeholder="話の流れが少しでも見えているなら書いてみてください。まだ無ければ空欄で大丈夫です。"></textarea>
+      </section>
+
+      <section class="eggWorkBlock">
+        <h2 class="eggWorkBlockTitle">世界観</h2>
+        <p class="eggApplyHint">EGG HATCHでは、この「世界観」を作品の中心として大切にしています。舞台、空気感、そこに住む人たちのことなど、自由に書いてください。</p>
+        <textarea class="eggApplyTextarea" id="eggSubmitWorldview" rows="5" placeholder="例：終夜営業のバス停待合室。そこに居合わせた見知らぬ5人が、始発までの数時間だけ「本当のこと」を話してしまう——という一夜の物語。"></textarea>
+      </section>
+
+      <section class="eggWorkBlock">
+        <h2 class="eggWorkBlockTitle">原作本文またはプロット<span class="eggSubmitOptional">（任意）</span></h2>
+        <p class="eggApplyHint">すでに書かれた文章があれば貼り付けてください。無くても投稿できます。</p>
+        <textarea class="eggApplyTextarea" id="eggSubmitOriginal" rows="6" placeholder="原作小説、脚本、プロットなど"></textarea>
+      </section>
+
+      <section class="eggWorkBlock">
+        <h2 class="eggWorkBlockTitle">ジャンル</h2>
+        <p class="eggApplyHint">当てはまるものを選んでください（複数選択可）</p>
+        <div class="eggSubmitGenreGrid" id="eggSubmitGenreGrid"></div>
+      </section>
+
+      <section class="eggWorkBlock">
+        <h2 class="eggWorkBlockTitle">キャラクター設定<span class="eggSubmitOptional">（任意）</span></h2>
+        <p class="eggApplyHint">思いついている人物がいれば追加してください。まだいなくても大丈夫です。</p>
+        <div class="eggSubmitRepeatList" id="eggSubmitCharacterList"></div>
+        <button type="button" class="eggSubmitAddBtn" id="eggSubmitAddCharacter">＋ キャラクターを追加</button>
+      </section>
+
+      <section class="eggWorkBlock">
+        <h2 class="eggWorkBlockTitle">募集したい役割<span class="eggSubmitOptional">（任意）</span></h2>
+        <p class="eggApplyHint">今、誰の力を借りたいですか？ まだ決まっていなければ、あとから追加もできます。</p>
+        <div class="eggSubmitRepeatList" id="eggSubmitRoleList"></div>
+        <button type="button" class="eggSubmitAddBtn" id="eggSubmitAddRole">＋ 募集役割を追加</button>
+      </section>
+
+      <section class="eggWorkBlock">
+        <h2 class="eggWorkBlockTitle">応募用課題<span class="eggSubmitOptional">（任意）</span></h2>
+        <p class="eggApplyHint">応募者に取り組んでほしい課題があれば書いてください。（例：「この世界観から短いストーリーを考えてください」「主人公の立ち絵を描いてください」）</p>
+        <textarea class="eggApplyTextarea" id="eggSubmitTask" rows="3" placeholder="例：この会話を3〜4コマで表現してください"></textarea>
+      </section>
+
+      <section class="eggWorkBlock">
+        <h2 class="eggWorkBlockTitle">募集期限<span class="eggSubmitOptional">（任意）</span></h2>
+        <div class="eggSubmitDeadlineRow">
+          <label class="eggSubmitRadioLabel"><input type="radio" name="deadlineType" value="ongoing" checked> 常時募集</label>
+          <label class="eggSubmitRadioLabel"><input type="radio" name="deadlineType" value="date"> 期限を指定する</label>
+          <input class="eggApplyInput" type="date" id="eggSubmitDeadlineDate" disabled>
+        </div>
+      </section>
+
+      <p class="eggApplyError" id="eggSubmitError" hidden></p>
+
+      <div class="eggApplySubmitRow">
+        <button type="submit" class="eggWorkApplyBtn">この内容で投稿する</button>
+      </div>
+    </form>
+
+    <div class="eggApplyDone" id="eggSubmitDone" hidden></div>
+
+  </main>
+
+<script src="{{ url_for('static', filename='js/egg-hatch-auth.js') }}?v=1"></script>
+<script>document.addEventListener("DOMContentLoaded", () => EggAuth.initAuthStatus("eggAuthStatus"));</script>
+<script src="{{ url_for('static', filename='js/egg-hatch-submit.js') }}?v=1"></script>
+</body>
+</html>

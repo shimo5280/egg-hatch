@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>クリエイタープロフィール | EGG HATCH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+
+<!-- 共通トークン・ナビ・カード部品を再利用 -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/egg-hatch.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/egg-hatch-work.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/egg-hatch-profile.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/egg-hatch-crosslink.css') }}">
+</head>
+<body class="eggWorkBody">
+<div class="eggCrossBanner eggCrossBanner--toRelay">📖 番外編 -リレー漫画- 公開中：みんなで一本の漫画をつなぐ公式リレー企画 <a href="egg-hatch-relay.html">見てみる →</a></div>
+
+  <!-- ※ トップページのエンドポイント名が不明のため href="/" を仮置きしています -->
+  <header class="eggWorkNav">
+    <a class="eggWorkNavHome" href="/">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="EGG HATCH" class="eggWorkNavLogo">
+      <span>EGG HATCH</span>
+    </a>
+    <div class="eggWorkNavRight">
+    <a class="eggWorkNavBack" href="/">← トップへ戻る</a>
+      <span class="eggAuthStatus" id="eggAuthStatus"></span>
+    </div>
+  </header>
+
+  <main class="eggProfilePage" id="eggProfilePage">
+    <p class="eggWorkLoading" id="eggProfileLoading">読み込んでいます…</p>
+  </main>
+
+<script src="{{ url_for('static', filename='js/egg-hatch-auth.js') }}?v=1"></script>
+<script>document.addEventListener("DOMContentLoaded", () => EggAuth.initAuthStatus("eggAuthStatus"));</script>
+<script src="{{ url_for('static', filename='js/egg-hatch-profile.js') }}?v=1"></script>
+</body>
+</html>
