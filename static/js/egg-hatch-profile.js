@@ -63,7 +63,7 @@
         </div>
       </div>
 
-      ${isSelf ? `<p class="eggApplyHint" style="margin-bottom:20px;"><a href="#" id="eggProfileEditLink" style="color:var(--eh-gold);">このプロフィールを編集する →</a></p>` : ""}
+      ${isSelf ? `<p class="eggApplyHint" style="margin-bottom:20px;"><a href="#" id="eggProfileEditLink" style="color:var(--eh-gold);">このプロフィールを編集する →</a></p>` : `<p class="eggApplyHint" style="margin-bottom:20px;"><a href="egg-hatch-request.html?to=${encodeURIComponent(p.user.id)}" style="color:var(--eh-gold);font-weight:700;">このクリエイターにお仕事を依頼する →</a></p>`}
 
       ${comingSoonSection("過去の提出作品")}
       ${comingSoonSection("参加作品")}

@@ -37,6 +37,17 @@ class User(UserMixin, db.Model):
     # 番外編(リレー漫画)の選考など、運営側の操作を許可するフラグ。
     # 既存の本編機能には一切影響しない(本編は owner_id による権限チェックのみ使用)。
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
+
+    # --- お仕事依頼の「依頼者専用入口」のためのアカウント区分 ---
+    # general : 通常のEGG HATCH参加者(既存ユーザーは全員これになる)
+    # client  : 出版社・編集者・企業など、仕事を依頼する側
+    # admin   : 運営
+    # 既存のUserテーブル・ログインの仕組みはそのまま。区別のための列を追加しただけ。
+    account_type = db.Column(db.String(20), nullable=False, default="general")
+    # 以下2つは account_type == "client" のときだけ意味を持つ(他は基本 None)
+    company_name = db.Column(db.String(200), nullable=True)  # 会社名・出版社名・編集部名など(任意)
+    client_type = db.Column(db.String(20), nullable=True)  # publisher / editor / company / freelance / other
+
     created_at = db.Column(db.DateTime, default=_now, nullable=False)
 
     # このユーザーが発案した作品
@@ -54,6 +65,12 @@ class User(UserMixin, db.Model):
 
     def check_password(self, raw_password: str) -> bool:
         return check_password_hash(self.password_hash, raw_password)
+
+    @property
+    def can_send_job_requests(self) -> bool:
+        """お仕事依頼を「送信」できるのは client か admin のみ。
+        既存のis_adminフラグ(番外編の運営権限)を持つ人も、念のため送信可にしておく。"""
+        return self.account_type in ("client", "admin") or self.is_admin
 
     def to_public_dict(self) -> dict:
         """他のユーザーにも見せてよい情報だけを返す（password_hash は絶対に含めない）"""
@@ -522,3 +539,65 @@ class RelaySubmission(db.Model):
 
     def __repr__(self):
         return f"<RelaySubmission id={self.id} relay_manga_id={self.relay_manga_id} status={self.status}>"
+
+
+# ==========================================================================
+# お仕事依頼
+#
+# 本編・番外編とは別の、追加機能。既存の User(会員登録・ログイン)の仕組みを
+# そのまま使う ― 新しいID体系は作らない。「誰が・誰(複数可)に依頼したか」
+# だけを記録するシンプルな構造にしていて、通知・運営確認・契約処理といった
+# 運用フローはあえて作り込んでいない(現段階のスコープ外のため)。
+# ==========================================================================
+
+
+class JobRequest(db.Model):
+    """お仕事依頼 本体。1件の依頼に対して、依頼相手(受け手)は1人以上何人でも紐づけられる。"""
+
+    __tablename__ = "job_requests"
+
+    id = db.Column(db.Integer, primary_key=True)
+    requester_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    message = db.Column(db.Text, nullable=False, default="")
+    created_at = db.Column(db.DateTime, default=_now, nullable=False)
+
+    requester = db.relationship("User", foreign_keys=[requester_id])
+    recipients = db.relationship(
+        "JobRequestRecipient", back_populates="job_request",
+        cascade="all, delete-orphan", order_by="JobRequestRecipient.id",
+    )
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "requester": self.requester.to_public_dict(),
+            "title": self.title,
+            "message": self.message,
+            # 複数人を指定した場合、この配列が2件以上になる
+            # ＝「このメンバーの組み合わせへの制作依頼」として扱う
+            "recipients": [r.user.to_public_dict() for r in self.recipients],
+            "created_at": self.created_at.isoformat(),
+        }
+
+    def __repr__(self):
+        return f"<JobRequest id={self.id} requester_id={self.requester_id} recipients={len(self.recipients)}>"
+
+
+class JobRequestRecipient(db.Model):
+    """お仕事依頼の宛先1人分(依頼:宛先 = 1:多)。"""
+
+    __tablename__ = "job_request_recipients"
+    __table_args__ = (
+        db.UniqueConstraint("job_request_id", "user_id", name="uq_job_request_recipient"),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    job_request_id = db.Column(db.Integer, db.ForeignKey("job_requests.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+
+    job_request = db.relationship("JobRequest", back_populates="recipients")
+    user = db.relationship("User")
+
+    def __repr__(self):
+        return f"<JobRequestRecipient job_request_id={self.job_request_id} user_id={self.user_id}>"

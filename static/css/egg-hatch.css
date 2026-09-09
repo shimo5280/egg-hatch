@@ -427,3 +427,22 @@ body {
 .eggAuthStatus--floating button:hover {
   text-decoration: underline;
 }
+
+/* --- 追加:依頼者向け入口(目立ちすぎない別枠のリンク) --- */
+.eggClientEntry--floating {
+  position: fixed;
+  top: 52px;
+  right: 18px;
+  z-index: 19;
+  background: rgba(255,255,255,0.9);
+  border: 1px solid var(--eh-line, rgba(43,38,32,0.2));
+  padding: 5px 10px;
+  font-size: 11px;
+  color: var(--eh-text-muted, #4A4A4A);
+  text-decoration: none;
+  display: inline-block;
+}
+.eggClientEntry--floating:hover {
+  border-color: var(--eh-gold, #8A6A00);
+  color: var(--eh-gold, #8A6A00);
+}

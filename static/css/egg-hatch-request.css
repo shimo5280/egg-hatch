@@ -1,0 +1,155 @@
+/* ==========================================================================
+   egg-hatch-request.css ― お仕事依頼 専用の追加スタイル
+
+   :root の色トークンと .eggWorkNav / .eggWorkBlock / .eggApplyInput などは
+   egg-hatch.css / egg-hatch-work.css / egg-hatch-apply.css を再利用します。
+   ここには、依頼相手を選ぶチップ(タグ)まわりのスタイルだけを追加しています。
+   ========================================================================== */
+
+.eggRequestClientBadge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  background: #6a4fa0;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+
+.eggRequestDashboardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+.eggRequestDashboardCard {
+  display: block;
+  padding: 18px;
+  border: 1px solid var(--eh-line, rgba(43,38,32,0.16));
+  border-radius: 6px;
+  background: var(--eh-paper, #fffbf2);
+  text-decoration: none;
+  color: inherit;
+}
+.eggRequestDashboardCard:hover { border-color: var(--eh-gold, #8A6A00); }
+.eggRequestDashboardCardTitle {
+  font-weight: 700;
+  font-size: 14px;
+  margin: 0 0 4px;
+}
+.eggRequestDashboardCardDesc {
+  font-size: 12px;
+  color: var(--eh-text-muted, #4A4A4A);
+  margin: 0;
+}
+
+.eggRequestChoiceRow {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.eggRequestRecipientPicker {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.eggRequestRecipientPicker input {
+  flex: 1;
+}
+.eggRequestRecipientPicker button {
+  padding: 0 16px;
+  border-radius: 4px;
+  border: 1px solid var(--eh-gold, #8A6A00);
+  background: #fff;
+  color: var(--eh-gold, #8A6A00);
+  font-size: 13px;
+  cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.eggRequestRecipientPicker button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.eggRequestChipList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.eggRequestChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f3eadc;
+  border: 1px solid var(--eh-line, rgba(43,38,32,0.2));
+  border-radius: 999px;
+  padding: 4px 6px 4px 12px;
+  font-size: 12.5px;
+}
+.eggRequestChip .eggRequestChipId {
+  color: var(--eh-text-muted, #4A4A4A);
+  font-size: 11px;
+}
+.eggRequestChip button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--eh-text-muted, #4A4A4A);
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px 4px;
+}
+.eggRequestChip button:hover { color: #b23b3b; }
+
+.eggRequestMultiNote {
+  font-size: 12px;
+  color: var(--eh-gold-bright, #e0982a);
+  margin: 6px 0 0;
+}
+
+/* --- 依頼一覧 --- */
+.eggRequestListItem {
+  border: 1px solid var(--eh-line, rgba(43,38,32,0.16));
+  border-radius: 6px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  background: var(--eh-paper, #fffbf2);
+}
+.eggRequestListItemHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.eggRequestListItemTitle {
+  font-weight: 700;
+  font-size: 14px;
+}
+.eggRequestListItemDate {
+  font-size: 11.5px;
+  color: var(--eh-text-muted, #4A4A4A);
+  white-space: nowrap;
+}
+.eggRequestListItemMeta {
+  font-size: 12px;
+  color: var(--eh-text-muted, #4A4A4A);
+  margin-bottom: 8px;
+}
+.eggRequestDirectionTag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-right: 6px;
+}
+.eggRequestDirectionTag--sent { background: #eee6d5; color: #8a6a00; }
+.eggRequestDirectionTag--received { background: #e1eef2; color: #3c6e8f; }
+.eggRequestListItemMessage {
+  font-size: 13px;
+  white-space: pre-wrap;
+  margin: 0;
+}

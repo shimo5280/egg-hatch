@@ -86,3 +86,31 @@ def relay_review_page():
 @pages_bp.get("/egg-hatch-relay-admin.html")
 def relay_admin_page():
     return render_template("egg-hatch-relay-admin.html")
+
+
+# ---------------------------------------------------------------------------
+# お仕事依頼
+# ---------------------------------------------------------------------------
+
+@pages_bp.get("/egg-hatch-request.html")
+def job_request_new_page():
+    return render_template("egg-hatch-request.html")
+
+
+@pages_bp.get("/egg-hatch-requests.html")
+def job_request_list_page():
+    return render_template("egg-hatch-requests.html")
+
+
+# ---------------------------------------------------------------------------
+# 依頼者専用入口
+# ---------------------------------------------------------------------------
+
+@pages_bp.get("/egg-hatch-client.html")
+def client_entry_page():
+    return render_template("egg-hatch-client.html")
+
+
+@pages_bp.get("/egg-hatch-client-login.html")
+def client_login_page():
+    return render_template("egg-hatch-client-login.html")

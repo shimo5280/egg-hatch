@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>依頼者ログイン | EGG HATCH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/egg-hatch.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/egg-hatch-work.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/egg-hatch-apply.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/egg-hatch-login.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/egg-hatch-request.css') }}">
+</head>
+<body class="eggWorkBody">
+
+  <header class="eggWorkNav">
+    <a class="eggWorkNavHome" href="/">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="EGG HATCH" class="eggWorkNavLogo">
+      <span>EGG HATCH<span class="eggRequestClientBadge">依頼者の方へ</span></span>
+    </a>
+    <a class="eggWorkNavBack" href="egg-hatch-client.html">← 依頼者ページへ</a>
+  </header>
+
+  <main class="eggLoginPage">
+
+    <div class="eggApplyHead">
+      <h1 class="eggApplyWorkTitle">依頼者ログイン / 新規登録</h1>
+      <p class="eggApplyWorkTheme">出版社・編集者・企業など、お仕事を依頼する方向けのアカウントです。</p>
+    </div>
+
+    <div class="eggLoginTabs">
+      <button type="button" class="eggApplyTypeBtn is-active" data-tab="login">依頼者ログイン</button>
+      <button type="button" class="eggApplyTypeBtn" data-tab="register">依頼者新規登録</button>
+    </div>
+
+    <section class="eggWorkBlock eggLoginPanel is-active" id="eggLoginPanelLogin">
+      <form id="eggClientLoginForm">
+        <div style="margin-bottom:14px;">
+          <label class="eggWorkBlockTitle" style="font-size:13px;">メールアドレス</label>
+          <input class="eggApplyInput" type="email" id="eggClientLoginEmail" required>
+        </div>
+        <div style="margin-bottom:14px;">
+          <label class="eggWorkBlockTitle" style="font-size:13px;">パスワード</label>
+          <input class="eggApplyInput" type="password" id="eggClientLoginPassword" required>
+        </div>
+        <p class="eggApplyError" id="eggClientLoginError" hidden></p>
+        <button type="submit" class="eggWorkApplyBtn">ログインする</button>
+      </form>
+      <p class="eggApplyHint" style="margin-top:14px;">
+        お試し用依頼者アカウント:<br>
+        client@example.com / password123(株式会社アオバ出版・編集者)
+      </p>
+    </section>
+
+    <section class="eggWorkBlock eggLoginPanel" id="eggLoginPanelRegister">
+      <form id="eggClientRegisterForm">
+        <div style="margin-bottom:14px;">
+          <label class="eggWorkBlockTitle" style="font-size:13px;">担当者名</label>
+          <input class="eggApplyInput" type="text" id="eggClientRegisterName" placeholder="例：今井 有紀" required>
+        </div>
+        <div style="margin-bottom:14px;">
+          <label class="eggWorkBlockTitle" style="font-size:13px;">会社名・出版社名・編集部名など(任意)</label>
+          <input class="eggApplyInput" type="text" id="eggClientRegisterCompany" placeholder="例：株式会社アオバ出版">
+        </div>
+        <div style="margin-bottom:14px;">
+          <label class="eggWorkBlockTitle" style="font-size:13px;">依頼者種別</label>
+          <select class="eggApplyInput" id="eggClientRegisterType" required>
+            <option value="">選択してください</option>
+            <option value="publisher">出版社</option>
+            <option value="editor">編集者</option>
+            <option value="company">企業</option>
+            <option value="freelance">個人事業者</option>
+            <option value="other">その他</option>
+          </select>
+        </div>
+        <div style="margin-bottom:14px;">
+          <label class="eggWorkBlockTitle" style="font-size:13px;">メールアドレス</label>
+          <input class="eggApplyInput" type="email" id="eggClientRegisterEmail" required>
+        </div>
+        <div style="margin-bottom:14px;">
+          <label class="eggWorkBlockTitle" style="font-size:13px;">パスワード(8文字以上)</label>
+          <input class="eggApplyInput" type="password" id="eggClientRegisterPassword" minlength="8" required>
+        </div>
+        <p class="eggApplyError" id="eggClientRegisterError" hidden></p>
+        <button type="submit" class="eggWorkApplyBtn">登録してはじめる</button>
+      </form>
+    </section>
+
+  </main>
+
+<script src="{{ url_for('static', filename='js/egg-hatch-auth.js') }}?v=1"></script>
+<script src="{{ url_for('static', filename='js/egg-hatch-client-login.js') }}?v=1"></script>
+</body>
+</html>

@@ -17,6 +17,7 @@ from app import create_app
 from models import (
     db, User, CreatorProfile, CreatorTag, Work, WorkRole, Application, TeamMember,
     File, RelayManga, RelayPart, RelayRecruitment, RelaySubmission, RelaySeason,
+    JobRequest, JobRequestRecipient,
 )
 
 
@@ -26,7 +27,7 @@ def seed(app):
         db.create_all()
 
         # --- ユーザー（パスワードは全員 "password123" だが、必ずハッシュ化して保存する） ---
-        tachibana = User(email="tachibana@example.com", display_name="橘 悠", is_admin=True)
+        tachibana = User(email="tachibana@example.com", display_name="橘 悠", is_admin=True, account_type="admin")
         tachibana.set_password("password123")
 
         fukami = User(email="fukami@example.com", display_name="深海 律")
@@ -41,7 +42,17 @@ def seed(app):
         yonaga = User(email="yonaga@example.com", display_name="夜長 ソラ")
         yonaga.set_password("password123")
 
-        db.session.add_all([tachibana, fukami, kamiya, kitano, yonaga])
+        # --- 依頼者(client)アカウントのサンプル ---
+        client_editor = User(
+            email="client@example.com",
+            display_name="今井 有紀",  # 担当者名
+            account_type="client",
+            company_name="株式会社アオバ出版",
+            client_type="editor",
+        )
+        client_editor.set_password("password123")
+
+        db.session.add_all([tachibana, fukami, kamiya, kitano, yonaga, client_editor])
         db.session.flush()  # ここで各ユーザーに id が振られる
 
         # --- クリエイタープロフィール（egg-hatch-profile.js の SAMPLE_PROFILES 相当） ---
@@ -278,6 +289,21 @@ def seed(app):
         print(f"   relay_mangas:     {RelayManga.query.count()} 件")
         print(f"   relay_parts:      {RelayPart.query.count()} 件")
         print(f"   relay_submissions:{RelaySubmission.query.count()} 件")
+
+        # --- お仕事依頼のサンプル(依頼者→複数クリエイターへの制作依頼) ---
+        sample_job_request = JobRequest(
+            requester_id=client_editor.id,
+            title="読み切り短編の制作をお願いしたいです",
+            message="キャラクターデザインと作画を、お二人のチームで担当していただけないでしょうか。詳細はご連絡の上お伝えします。",
+        )
+        db.session.add(sample_job_request)
+        db.session.flush()
+        db.session.add_all([
+            JobRequestRecipient(job_request_id=sample_job_request.id, user_id=kitano.id),
+            JobRequestRecipient(job_request_id=sample_job_request.id, user_id=kamiya.id),
+        ])
+        db.session.commit()
+        print(f"   job_requests:     {JobRequest.query.count()} 件")
 
 
 if __name__ == "__main__":

@@ -60,6 +60,54 @@ def register():
     return jsonify(user.to_public_dict()), 201
 
 
+VALID_CLIENT_TYPES = ("publisher", "editor", "company", "freelance", "other")
+
+
+@auth_bp.post("/register-client")
+def register_client():
+    """
+    依頼者(出版社・編集者・企業など)専用の会員登録。
+
+    既存の /register とは別のエンドポイントにして、既存の一般ユーザー登録には
+    一切手を触れていない。作られるUser行自体は同じテーブル・同じ仕組みで、
+    account_type="client" になる点だけが違う。
+    """
+    data = request.get_json(silent=True) or {}
+    email = (data.get("email") or "").strip().lower()
+    password = data.get("password") or ""
+    display_name = (data.get("display_name") or "").strip()  # 担当者名
+    company_name = (data.get("company_name") or "").strip() or None  # 任意(個人編集者などもいるため)
+    client_type = (data.get("client_type") or "").strip()
+
+    if not email or "@" not in email:
+        return jsonify({"error": "メールアドレスの形式が正しくありません。"}), 400
+    if len(password) < MIN_PASSWORD_LENGTH:
+        return jsonify({"error": f"パスワードは{MIN_PASSWORD_LENGTH}文字以上にしてください。"}), 400
+    if not display_name:
+        return jsonify({"error": "担当者名を入力してください。"}), 400
+    if client_type not in VALID_CLIENT_TYPES:
+        return jsonify({"error": "依頼者種別を選択してください。"}), 400
+
+    if User.query.filter_by(email=email).first() is not None:
+        return jsonify({"error": "このメールアドレスはすでに登録されています。"}), 409
+
+    user = User(
+        email=email,
+        display_name=display_name,
+        account_type="client",
+        company_name=company_name,
+        client_type=client_type,
+    )
+    user.set_password(password)
+    db.session.add(user)
+    db.session.commit()
+
+    login_user(user)
+    data = user.to_public_dict()
+    data["account_type"] = user.account_type
+    return jsonify(data), 201
+
+
 @auth_bp.post("/login")
 def login():
     data = request.get_json(silent=True) or {}
@@ -86,10 +134,13 @@ def logout():
 @auth_bp.get("/me")
 @login_required
 def me():
-    # is_admin は「本人が今ログインしているか」の確認にだけ使うものなので、
-    # ここ(自分自身の情報を返すエンドポイント)にだけ追加する。
-    # 他人の情報を返す to_public_dict() には含めない(応募者・チームメンバー
-    # などの一覧に運営フラグが混ざらないようにするため)。
+    # is_admin / account_type などは「本人が今ログインしているか」の確認にだけ
+    # 使うものなので、ここ(自分自身の情報を返すエンドポイント)にだけ追加する。
+    # 他人の情報を返す to_public_dict() には含めない。
     data = current_user.to_public_dict()
     data["is_admin"] = current_user.is_admin
+    data["account_type"] = current_user.account_type
+    data["company_name"] = current_user.company_name
+    data["client_type"] = current_user.client_type
+    data["can_send_job_requests"] = current_user.can_send_job_requests
     return jsonify(data), 200

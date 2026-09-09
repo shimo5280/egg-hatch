@@ -20,6 +20,7 @@ from files import files_bp
 from profiles import profiles_bp
 from pages import pages_bp
 from relay import relay_bp
+from job_requests import job_requests_bp
 
 
 def create_app():
@@ -75,6 +76,7 @@ def create_app():
     app.register_blueprint(profiles_bp)
     app.register_blueprint(pages_bp)
     app.register_blueprint(relay_bp)
+    app.register_blueprint(job_requests_bp)
 
     # abort(403, description=...) / abort(404, description=...) を、
     # HTMLのエラーページではなくJSONで返すようにする(このアプリはAPIのため)
