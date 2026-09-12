@@ -13,15 +13,39 @@
 window.EggAuth = (() => {
   "use strict";
 
+  const UNSAFE_METHODS = ["POST", "PUT", "PATCH", "DELETE"];
+  let _csrfTokenPromise = null;
+
+  /**
+   * CSRFトークンを取得する(セッションに紐づくもの。初回だけサーバーに取りに行き、
+   * 以降はメモリ上にキャッシュして使い回す)。
+   */
+  function _getCsrfToken() {
+    if (!_csrfTokenPromise) {
+      _csrfTokenPromise = fetch("/csrf-token", { credentials: "same-origin" })
+        .then((res) => res.json())
+        .then((body) => body.csrf_token);
+    }
+    return _csrfTokenPromise;
+  }
+
   /**
    * バックエンドAPIを呼び出す共通関数。
    * - credentials: "same-origin" を必ず付ける(ログインセッションのCookieを送るため)
+   * - 状態を変更するメソッドには、CSRFトークンを自動的に付与する
    * - エラー時は catch しやすいよう Error を投げる
    */
   async function apiFetch(path, options = {}) {
+    const method = (options.method || "GET").toUpperCase();
+    const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
+
+    if (UNSAFE_METHODS.includes(method)) {
+      headers["X-CSRF-Token"] = await _getCsrfToken();
+    }
+
     const res = await fetch(path, {
       credentials: "same-origin",
-      headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+      headers,
       ...options,
     });
 
@@ -49,6 +73,7 @@ window.EggAuth = (() => {
     const res = await fetch("/uploads", {
       method: "POST",
       credentials: "same-origin",
+      headers: { "X-CSRF-Token": await _getCsrfToken() },
       body: formData,
     });
     const body = await res.json();

@@ -33,18 +33,24 @@ egg-hatch/
 
 ## 動かし方
 
+開発・動作確認用(サンプルデータあり):
 ```bash
 cd backend
 pip install -r requirements.txt
-python3 init_db.py     # データベースを作成し、サンプルデータを入れる
+EGG_HATCH_SEED_SAMPLE_DATA=1 python3 init_db.py     # データベースを作成し、サンプルデータを入れる
 python3 app.py          # サーバー起動
 ```
 
+本番で公開する場合は、サンプルデータを入れず、環境変数で運営アカウントを
+作成してください。詳しくは`backend/README.md`の「本番公開前に必ず設定すること」
+を参照してください。
+
 ブラウザで `http://127.0.0.1:5000/` を開くと、トップページが表示されます。
 
-**お試し用アカウント**(すべてパスワード `password123`):
-- `tachibana@example.com`(発案者。「境界線のアリス」などの作品を持っています)
+**お試し用アカウント**(`EGG_HATCH_SEED_SAMPLE_DATA=1`で作成した場合のみ。すべてパスワード `password123`):
+- `tachibana@example.com`(発案者・運営。「境界線のアリス」などの作品を持っています)
 - `kamiya@example.com` / `kitano@example.com` / `yonaga@example.com` / `fukami@example.com`(応募者側)
+- `client@example.com`(依頼者・承認済み) / `pending-client@example.com`(依頼者・未承認)
 
 新規登録もログイン画面からできます。
 

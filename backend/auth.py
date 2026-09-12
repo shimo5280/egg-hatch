@@ -28,6 +28,33 @@ auth_bp = Blueprint("auth", __name__)
 
 MIN_PASSWORD_LENGTH = 8
 
+# --- ログイン試行回数の制限(総当たり攻撃対策) ---
+# 【追加】メールアドレスごとに、短時間での失敗回数が多すぎる場合はログインを
+# 一時的に受け付けないようにする。プロセス内メモリで数えるだけの簡易な実装
+# (アプリを再起動すると記録は消える。複数プロセスでの運用時は共有されない)だが、
+# 一般公開前の最低限の対策として追加している。
+import time
+from collections import defaultdict
+
+_LOGIN_MAX_ATTEMPTS = 10
+_LOGIN_WINDOW_SECONDS = 15 * 60  # 15分
+_login_failures = defaultdict(list)
+
+
+def _is_login_rate_limited(email: str) -> bool:
+    now = time.time()
+    attempts = _login_failures[email]
+    attempts[:] = [t for t in attempts if now - t < _LOGIN_WINDOW_SECONDS]
+    return len(attempts) >= _LOGIN_MAX_ATTEMPTS
+
+
+def _record_login_failure(email: str) -> None:
+    _login_failures[email].append(time.time())
+
+
+def _clear_login_failures(email: str) -> None:
+    _login_failures.pop(email, None)
+
 
 @auth_bp.post("/register")
 def register():
@@ -97,6 +124,7 @@ def register_client():
         account_type="client",
         company_name=company_name,
         client_type=client_type,
+        is_approved=False,  # 【追加】登録しただけでは未承認。運営の承認が必要
     )
     user.set_password(password)
     db.session.add(user)
@@ -105,6 +133,7 @@ def register_client():
     login_user(user)
     data = user.to_public_dict()
     data["account_type"] = user.account_type
+    data["is_approved"] = user.is_approved
     return jsonify(data), 201
 
 
@@ -114,12 +143,21 @@ def login():
     email = (data.get("email") or "").strip().lower()
     password = data.get("password") or ""
 
+    if not email:
+        return jsonify({"error": "メールアドレスまたはパスワードが正しくありません。"}), 401
+
+    # 【追加】短時間に失敗が続いている場合は、パスワードの正誤を見る前に止める
+    if _is_login_rate_limited(email):
+        return jsonify({"error": "ログイン試行の回数が多すぎます。しばらく時間をおいて再度お試しください。"}), 429
+
     user = User.query.filter_by(email=email).first()
 
     # user が存在しない場合も、パスワードが違う場合も、必ず同じエラーメッセージにする
     if user is None or not user.check_password(password):
+        _record_login_failure(email)
         return jsonify({"error": "メールアドレスまたはパスワードが正しくありません。"}), 401
 
+    _clear_login_failures(email)
     login_user(user)
     return jsonify(user.to_public_dict()), 200
 
@@ -142,5 +180,70 @@ def me():
     data["account_type"] = current_user.account_type
     data["company_name"] = current_user.company_name
     data["client_type"] = current_user.client_type
+    data["is_approved"] = current_user.is_approved
     data["can_send_job_requests"] = current_user.can_send_job_requests
     return jsonify(data), 200
+
+
+# ---------------------------------------------------------------------------
+# 依頼者アカウントの承認(運営のみ)
+#
+# register-client で作られたアカウントは is_approved=False の状態で始まる。
+# ここで運営が承認して初めて、お仕事依頼を送信できるようになる
+# (実際の送信可否の判定は User.can_send_job_requests / job_requests.py 側)。
+# 既存のリレー漫画管理画面(唯一の管理画面)から呼び出す想定の、最小限のAPI。
+# ---------------------------------------------------------------------------
+
+def _require_admin_user():
+    if not current_user.is_authenticated or not (current_user.is_admin or current_user.account_type == "admin"):
+        from flask import abort
+        abort(403, description="この操作は運営のみ行えます。")
+
+
+@auth_bp.get("/admin/clients")
+@login_required
+def list_clients_for_approval():
+    _require_admin_user()
+    status = request.args.get("status")  # "pending" だけに絞りたい場合に使う
+
+    query = User.query.filter_by(account_type="client")
+    if status == "pending":
+        query = query.filter_by(is_approved=False)
+    elif status == "approved":
+        query = query.filter_by(is_approved=True)
+
+    clients = query.order_by(User.created_at.desc()).all()
+    return jsonify([
+        {
+            "id": u.id,
+            "display_name": u.display_name,
+            "email": u.email,
+            "company_name": u.company_name,
+            "client_type": u.client_type,
+            "is_approved": u.is_approved,
+            "created_at": u.created_at.isoformat(),
+        }
+        for u in clients
+    ])
+
+
+@auth_bp.patch("/admin/clients/<int:user_id>")
+@login_required
+def update_client_approval(user_id):
+    _require_admin_user()
+
+    target = db.session.get(User, user_id)
+    if target is None or target.account_type != "client":
+        return jsonify({"error": "指定された依頼者アカウントが見つかりません。"}), 404
+
+    data = request.get_json(silent=True) or {}
+    if "is_approved" not in data:
+        return jsonify({"error": "is_approved を指定してください。"}), 400
+
+    target.is_approved = bool(data["is_approved"])
+    db.session.commit()
+    return jsonify({
+        "id": target.id,
+        "display_name": target.display_name,
+        "is_approved": target.is_approved,
+    })

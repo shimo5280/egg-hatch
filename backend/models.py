@@ -47,6 +47,10 @@ class User(UserMixin, db.Model):
     # 以下2つは account_type == "client" のときだけ意味を持つ(他は基本 None)
     company_name = db.Column(db.String(200), nullable=True)  # 会社名・出版社名・編集部名など(任意)
     client_type = db.Column(db.String(20), nullable=True)  # publisher / editor / company / freelance / other
+    # 依頼者(client)アカウントは、登録しただけではお仕事依頼を送れない。
+    # 運営が承認(is_approved=True)して初めて送信できるようにする。
+    # general / admin にとっては意味を持たない値(can_send_job_requestsの判定を参照)。
+    is_approved = db.Column(db.Boolean, nullable=False, default=False)
 
     created_at = db.Column(db.DateTime, default=_now, nullable=False)
 
@@ -68,9 +72,13 @@ class User(UserMixin, db.Model):
 
     @property
     def can_send_job_requests(self) -> bool:
-        """お仕事依頼を「送信」できるのは client か admin のみ。
-        既存のis_adminフラグ(番外編の運営権限)を持つ人も、念のため送信可にしておく。"""
-        return self.account_type in ("client", "admin") or self.is_admin
+        """お仕事依頼を「送信」できるのは、admin か、運営に承認済みのclientのみ。
+        (承認前のclientアカウントは、登録しただけでは送信できない)"""
+        if self.is_admin or self.account_type == "admin":
+            return True
+        if self.account_type == "client":
+            return self.is_approved
+        return False
 
     def to_public_dict(self) -> dict:
         """他のユーザーにも見せてよい情報だけを返す（password_hash は絶対に含めない）"""
@@ -552,15 +560,51 @@ class RelaySubmission(db.Model):
 
 
 class JobRequest(db.Model):
-    """お仕事依頼 本体。1件の依頼に対して、依頼相手(受け手)は1人以上何人でも紐づけられる。"""
+    """
+    お仕事依頼 本体。1件の依頼に対して、依頼相手(受け手)は1人以上何人でも紐づけられる。
+
+    【運営仲介フロー】依頼者→クリエイターへ直接届くのではなく、必ず運営を経由する。
+      pending_review      : 依頼者が作成した直後。運営がまだ確認していない
+      rejected            : 運営が内容を確認し、却下した(メンバーには一切通知されない)
+      awaiting_responses  : 運営がメンバーへ通知した。メンバーの回答待ち
+      reviewing_responses : メンバーが1人以上回答した。運営が最終判断を検討中
+      finalized_success   : 運営が「成立」として依頼者へ結果報告した
+      finalized_failure   : 運営が「不成立」として依頼者へ結果報告した
+    """
 
     __tablename__ = "job_requests"
+
+    STATUS_PENDING_REVIEW = "pending_review"
+    STATUS_REJECTED = "rejected"
+    STATUS_AWAITING_RESPONSES = "awaiting_responses"
+    STATUS_REVIEWING_RESPONSES = "reviewing_responses"
+    STATUS_FINALIZED_SUCCESS = "finalized_success"
+    STATUS_FINALIZED_FAILURE = "finalized_failure"
+
+    STATUS_LABELS = {
+        STATUS_PENDING_REVIEW: "運営確認待ち",
+        STATUS_REJECTED: "却下",
+        STATUS_AWAITING_RESPONSES: "メンバー回答待ち",
+        STATUS_REVIEWING_RESPONSES: "回答確認中",
+        STATUS_FINALIZED_SUCCESS: "成立",
+        STATUS_FINALIZED_FAILURE: "不成立",
+    }
+    # メンバー(受け手)に依頼の存在が見えるようになるのは、通知された後だけ
+    STATUSES_VISIBLE_TO_RECIPIENTS = (
+        STATUS_AWAITING_RESPONSES, STATUS_REVIEWING_RESPONSES,
+        STATUS_FINALIZED_SUCCESS, STATUS_FINALIZED_FAILURE,
+    )
+    # メンバーが承諾/辞退を回答できるのは、この状態の間だけ
+    STATUSES_ACCEPTING_RESPONSES = (STATUS_AWAITING_RESPONSES, STATUS_REVIEWING_RESPONSES)
 
     id = db.Column(db.Integer, primary_key=True)
     requester_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     title = db.Column(db.String(200), nullable=False)
     message = db.Column(db.Text, nullable=False, default="")
+    status = db.Column(db.String(30), nullable=False, default=STATUS_PENDING_REVIEW)
     created_at = db.Column(db.DateTime, default=_now, nullable=False)
+    notified_at = db.Column(db.DateTime, nullable=True)   # 運営がメンバーへ通知した日時
+    finalized_at = db.Column(db.DateTime, nullable=True)  # 運営が依頼者へ結果報告した日時
 
     requester = db.relationship("User", foreign_keys=[requester_id])
     recipients = db.relationship(
@@ -568,36 +612,100 @@ class JobRequest(db.Model):
         cascade="all, delete-orphan", order_by="JobRequestRecipient.id",
     )
 
-    def to_dict(self) -> dict:
-        return {
+    def to_dict(self, *, viewer_role="admin", viewer_user_id=None) -> dict:
+        """
+        viewer_role:
+          "admin"     - 運営向け。各メンバーの回答状況まで全て見せる
+          "requester" - 依頼者向け。全体のステータスのみ。各メンバーの細かい回答内容は見せない
+          "recipient" - メンバー向け。指定メンバーの一覧は見せるが、他人の回答状況までは見せない
+        """
+        data = {
             "id": self.id,
             "requester": self.requester.to_public_dict(),
             "title": self.title,
             "message": self.message,
+            "status": self.status,
+            "status_label": self.STATUS_LABELS.get(self.status, self.status),
             # 複数人を指定した場合、この配列が2件以上になる
             # ＝「このメンバーの組み合わせへの制作依頼」として扱う
-            "recipients": [r.user.to_public_dict() for r in self.recipients],
             "created_at": self.created_at.isoformat(),
+            "notified_at": self.notified_at.isoformat() if self.notified_at else None,
+            "finalized_at": self.finalized_at.isoformat() if self.finalized_at else None,
         }
 
+        if viewer_role == "admin":
+            data["recipients"] = [r.to_dict(include_response=True) for r in self.recipients]
+        else:
+            data["recipients"] = [r.to_dict(include_response=False) for r in self.recipients]
+
+        if viewer_role == "recipient" and viewer_user_id is not None:
+            mine = next((r for r in self.recipients if r.user_id == viewer_user_id), None)
+            data["my_response_status"] = mine.response_status if mine else None
+
+        return data
+
     def __repr__(self):
-        return f"<JobRequest id={self.id} requester_id={self.requester_id} recipients={len(self.recipients)}>"
+        return f"<JobRequest id={self.id} requester_id={self.requester_id} status={self.status}>"
 
 
 class JobRequestRecipient(db.Model):
-    """お仕事依頼の宛先1人分(依頼:宛先 = 1:多)。"""
+    """お仕事依頼の宛先1人分(依頼:宛先 = 1:多)。メンバーごとに回答を別管理する。"""
 
     __tablename__ = "job_request_recipients"
     __table_args__ = (
         db.UniqueConstraint("job_request_id", "user_id", name="uq_job_request_recipient"),
     )
 
+    RESPONSE_PENDING = "pending"
+    RESPONSE_ACCEPTED = "accepted"
+    RESPONSE_DECLINED = "declined"
+
     id = db.Column(db.Integer, primary_key=True)
     job_request_id = db.Column(db.Integer, db.ForeignKey("job_requests.id"), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    response_status = db.Column(db.String(20), nullable=False, default=RESPONSE_PENDING)
+    responded_at = db.Column(db.DateTime, nullable=True)
 
     job_request = db.relationship("JobRequest", back_populates="recipients")
     user = db.relationship("User")
 
+    def to_dict(self, *, include_response=True) -> dict:
+        data = {**self.user.to_public_dict()}
+        if include_response:
+            data["response_status"] = self.response_status
+            data["responded_at"] = self.responded_at.isoformat() if self.responded_at else None
+        return data
+
     def __repr__(self):
         return f"<JobRequestRecipient job_request_id={self.job_request_id} user_id={self.user_id}>"
+
+
+class Notification(db.Model):
+    """
+    EGG HATCH内部の通知ログ。お仕事依頼の運営仲介フローで発生するイベント
+    (新規依頼が来た・メンバーに届いた・メンバーが回答した・結果が確定した)を記録する。
+
+    今はアプリ内の画面表示にしか使っていないが、あとからメール送信などに
+    拡張しやすいよう、「誰に」「何が起きたか」をシンプルなログとして残す形にしている。
+    """
+
+    __tablename__ = "notifications"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    kind = db.Column(db.String(40), nullable=False)  # 例: "job_request_new" など
+    message = db.Column(db.Text, nullable=False)
+    related_job_request_id = db.Column(db.Integer, db.ForeignKey("job_requests.id"), nullable=True)
+    created_at = db.Column(db.DateTime, default=_now, nullable=False)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "kind": self.kind,
+            "message": self.message,
+            "related_job_request_id": self.related_job_request_id,
+            "created_at": self.created_at.isoformat(),
+        }
+
+    def __repr__(self):
+        return f"<Notification id={self.id} user_id={self.user_id} kind={self.kind}>"

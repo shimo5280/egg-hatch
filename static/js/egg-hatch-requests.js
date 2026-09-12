@@ -2,8 +2,9 @@
    egg-hatch-requests.js ― お仕事依頼一覧(送った/受け取った)
 
    GET /job-requests は、ログイン中の本人が「依頼した」ものと
-   「依頼された」ものの両方をまとめて返す。ここでは一覧表示のみを行い、
-   承諾/辞退などのアクションは用意していない(現段階のスコープ外のため)。
+   「依頼された」ものの両方をまとめて返す(運営からまだ通知されていない
+   依頼は、受け取った側の一覧には出てこない)。
+   ステータス表示と、詳細/回答画面へのリンクを追加している。
    ========================================================================== */
 
 (() => {
@@ -32,11 +33,41 @@
         </div>
         <p class="eggRequestListItemMeta">
           ${directionTag}
+          <span class="eggRequestStatusTag eggRequestStatusTag--${jr.status}">${escapeHtml(jr.status_label)}</span>
+          <br>
           依頼者：${escapeHtml(jr.requester.display_name)}(ID:${jr.requester.id})
           ／依頼相手：${recipientNames} ${multiHint}
         </p>
         ${jr.message ? `<p class="eggRequestListItemMessage">${escapeHtml(jr.message)}</p>` : ""}
+        <p style="margin:10px 0 0;">
+          <a href="egg-hatch-request-detail.html?id=${encodeURIComponent(jr.id)}" style="color:var(--eh-gold);font-size:12.5px;font-weight:700;">
+            詳細を見る${!isSent && jr.my_response_status === "pending" ? "(回答する)" : ""} →
+          </a>
+        </p>
       </article>`;
+  }
+
+  async function renderNotifications() {
+    const box = document.getElementById("eggRequestNotifications");
+    if (!box) return;
+    let notifications;
+    try {
+      notifications = await EggAuth.apiFetch("/notifications");
+    } catch (e) {
+      return;
+    }
+    if (!notifications.length) return;
+
+    box.innerHTML = `
+      <div class="eggRequestNoticeBox">
+        <strong>お知らせ</strong>
+        <ul style="margin:6px 0 0 18px;padding:0;">
+          ${notifications
+            .slice(0, 5)
+            .map((n) => `<li>${escapeHtml(n.message)}</li>`)
+            .join("")}
+        </ul>
+      </div>`;
   }
 
   async function init() {
@@ -61,8 +92,11 @@
         <h1 class="eggApplyWorkTitle">依頼一覧</h1>
         <p class="eggApplyHint">あなたが送った依頼と、あなたに届いた依頼をまとめて表示しています。</p>
       </div>
+      <div id="eggRequestNotifications"></div>
       <div id="eggRequestListBox"></div>
     `;
+
+    renderNotifications();
 
     const box = document.getElementById("eggRequestListBox");
     if (!jobRequests.length) {

@@ -7,6 +7,46 @@
 - ✅ 3. 選考画面・制作スペースの権限チェック
 - ✅ 4. ファイルアップロード
 - ✅ 5. work_roles / creator_profiles テーブルの追加
+- ✅ 6. 一般公開前のセキュリティ最終確認(下記「本番公開前に必ず設定すること」を参照)
+
+## 本番公開前に必ず設定すること
+
+一般ユーザーを入れて運営を始める前に、以下の環境変数を必ず設定してください
+(未設定でも動作はしますが、開発用の安全ではない既定値で動いてしまいます)。
+
+| 環境変数 | 内容 | 未設定時の動き |
+|---|---|---|
+| `EGG_HATCH_SECRET_KEY` | セッションCookieの署名鍵。他人に推測されない、十分に長いランダム文字列を設定 | 起動のたびにランダムな鍵を自動生成(=再起動でログインが全員切れる。固定の推測可能な鍵よりは安全だが、本番では必ず固定値を設定すること) |
+| `EGG_HATCH_SECURE_COOKIES` | `1`にすると、ログインCookieをHTTPS通信でしか送らないようにする | 未設定(=HTTPでも送られる)。**HTTPSで公開する場合は必ず`1`にする** |
+| `EGG_HATCH_DEBUG` | `1`にするとFlaskのデバッグモードで起動する(ローカル開発専用) | 未設定(=デバッグモード無効)。**本番では絶対に`1`にしないこと**(エラー画面から内部情報が漏れたり、任意コード実行につながる危険がある) |
+| `EGG_HATCH_SEED_SAMPLE_DATA` | `1`にすると`init_db.py`実行時にサンプルユーザー・サンプル作品などを作成する | 未設定(=何も作らない)。**本番では絶対に`1`にしないこと**(`password123`のサンプルアカウントが実在してしまう) |
+| `EGG_HATCH_ADMIN_EMAIL` / `EGG_HATCH_ADMIN_PASSWORD` | 両方指定すると、`init_db.py`実行時にその内容で運営(admin)アカウントを1件作成する | 未設定(=運営アカウントを作らない)。本番では、この2つを使って最初の運営アカウントを作成してください(パスワードをコードに書かずに済みます) |
+
+また、`/db-check`(開発確認用ルート)は運営(`is_admin`)アカウントでログインしていないと使えないようにしてあります。
+
+ログインには、短時間に失敗が続いた場合(同じメールアドレスで15分間に10回失敗)に
+一時的に受け付けなくする仕組みを追加しています(総当たり攻撃対策。プロセス内
+メモリでの簡易な実装のため、複数プロセスで運用する場合は共有されない点に注意)。
+
+すべてのPOST/PUT/PATCH/DELETEリクエストには、CSRFトークン(`X-CSRF-Token`ヘッダー)
+の一致が必要です。`egg-hatch-auth.js`が自動的に付与するため、通常の画面操作では
+意識する必要はありません。
+
+## 依頼者アカウントの承認について
+
+`POST /register-client`で作成された依頼者(client)アカウントは、登録しただけでは
+お仕事依頼を送信できません(`is_approved=False`の状態で始まります)。運営が
+`egg-hatch-relay-admin.html`の「⑤ 依頼者アカウントの承認」から内容を確認し、
+承認して初めて送信できるようになります。この制御はサーバー側
+(`User.can_send_job_requests`)で行っているため、未承認のまま画面やAPIを
+直接操作しても依頼は送信できません。
+
+**運営(`init_db.py`で作られる開発用サンプル)**:`tachibana@example.com`が
+運営アカウントです。
+
+**⚠️ 本番でこのままにしないこと**:`init_db.py`は実行するたびにデータベースを
+空にしてから作り直します。公開後にすでに利用者データが入っている状態で
+実行すると、そのデータはすべて消えます。本番での実行は最初の1回だけにしてください。
 
 ## 中身
 
@@ -23,10 +63,20 @@
 
 ## 使い方
 
+開発・動作確認(サンプルデータあり):
 ```bash
 pip install -r requirements.txt
-python3 init_db.py
+EGG_HATCH_SEED_SAMPLE_DATA=1 python3 init_db.py
 python3 app.py
+```
+
+本番(サンプルデータなし。最初の運営アカウントだけ作る場合):
+```bash
+pip install -r requirements.txt
+EGG_HATCH_SECRET_KEY="..." EGG_HATCH_SECURE_COOKIES=1 \
+EGG_HATCH_ADMIN_EMAIL="you@example.com" EGG_HATCH_ADMIN_PASSWORD="十分に強いパスワード" \
+python3 init_db.py
+EGG_HATCH_SECRET_KEY="..." EGG_HATCH_SECURE_COOKIES=1 python3 app.py
 ```
 
 ## 今回の変更点(work_roles / creator_profiles)
@@ -195,6 +245,58 @@ python3 app.py
 
 **お試し用依頼者アカウント**:`client@example.com` / password123
 (株式会社アオバ出版・編集者、`account_type=client`)
+
+## 仕事依頼の運営仲介フロー
+
+依頼者からクリエイターへ直接届く構造をやめ、必ず運営を経由するフローに変更しました。
+既存の依頼者ログイン・承認・ユーザーID指定(1人/複数人)・既存画面は変更していません。
+
+**状態遷移**(`JobRequest.status`):
+
+```
+pending_review(運営確認待ち)
+  ├─ 運営が却下 ────────────────────→ rejected(却下)
+  └─ 運営がメンバーへ通知 ──────────→ awaiting_responses(メンバー回答待ち)
+       └─ 誰か1人が回答 ────────────→ reviewing_responses(回答確認中)
+       awaiting_responses / reviewing_responses
+         ├─ 運営が成立として報告 ────→ finalized_success(成立)
+         └─ 運営が不成立として報告 ──→ finalized_failure(不成立)
+```
+
+**追加したDB項目**:
+- `job_requests`テーブルに`status`・`notified_at`・`finalized_at`を追加
+- `job_request_recipients`テーブルに`response_status`(pending/accepted/declined)・`responded_at`を追加
+- `notifications`テーブルを新設(誰に・何が起きたかを記録する内部通知ログ。
+  今は画面表示にしか使っていないが、あとからメール送信などに拡張しやすい構造にしてある)
+
+**追加したURLルート**:
+- `POST /job-requests/<id>/respond` ― メンバーが承諾/辞退を回答する。宛先本人のみ、
+  かつ「メンバー回答待ち」または「回答確認中」の間だけ、1回だけ回答できる
+- `GET /notifications` ― 自分宛ての内部通知一覧
+- `GET /admin/job-requests`・`GET /admin/job-requests/<id>` ― 運営向け一覧・詳細
+  (各メンバーの回答状況まで含めて見える)
+- `POST /admin/job-requests/<id>/notify` ― 運営操作:メンバーへ通知する
+- `POST /admin/job-requests/<id>/reject` ― 運営操作:依頼を却下する(メンバーには一切通知されない)
+- `POST /admin/job-requests/<id>/finalize`(body: `{"result":"success"|"failure"}`) ― 運営操作:依頼者へ結果報告する
+
+**依頼作成から成立/不成立までの流れ**:
+1. 依頼者が`egg-hatch-request.html`(既存の画面)から依頼を作成する(`POST /job-requests`。
+   エンドポイントの仕様は変更していない) → `pending_review`になり、運営全員に内部通知が届く
+2. 運営が`egg-hatch-relay-admin.html`の「⑥ 仕事依頼管理」で内容を確認する。
+   この時点では、指定されたメンバーはまだこの依頼の存在を一切知らない
+   (`GET /job-requests`一覧にも出てこず、URL直接入力でも403になる)
+3. 運営が「メンバーへ通知」を押す → `awaiting_responses`になり、各メンバーに内部通知が届き、
+   `egg-hatch-requests.html`の一覧・`egg-hatch-request-detail.html`で内容を確認できるようになる
+4. 各メンバーが`egg-hatch-request-detail.html`で「承諾する」/「辞退する」を回答する
+   (1人1回のみ。複数人いる場合は、それぞれ別々に管理される)。最初の回答で`reviewing_responses`になる
+5. 運営が各メンバーの回答状況を「⑥ 仕事依頼管理」で確認し、「成立として報告」または
+   「不成立として報告」を押す → `finalized_success`/`finalized_failure`になり、依頼者に内部通知が届く
+6. 依頼者は`egg-hatch-requests.html`/`egg-hatch-request-detail.html`で最終結果を確認できる
+   (ただし、運営が結果報告する前は、各メンバーの個別の回答内容は依頼者には見えない。
+   全体のステータスのみが見える)
+
+「依頼を却下」は`pending_review`の間だけ可能で、押すとメンバーには一切通知されず、
+依頼者にだけ却下の内部通知が届きます。
 
 ## フロントエンドとの接続について
 

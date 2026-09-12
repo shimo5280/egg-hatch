@@ -212,12 +212,17 @@
       return;
     }
     if (!currentUser.can_send_job_requests) {
+      const isPendingClient = currentUser.account_type === "client" && !currentUser.is_approved;
       document.getElementById("eggRequestPage").innerHTML = `
         <div class="eggApplyHead">
           <p class="eggApplyEyebrow">お仕事依頼</p>
-          <h1 class="eggApplyWorkTitle">この画面は依頼者アカウント専用です</h1>
+          <h1 class="eggApplyWorkTitle">${isPendingClient ? "運営の承認をお待ちください" : "この画面は依頼者アカウント専用です"}</h1>
           <p class="eggApplyHint">
-            お仕事の依頼を送るには、依頼者(出版社・編集者・企業など)アカウントでのログインが必要です。<br>
+            ${
+              isPendingClient
+                ? "依頼者登録ありがとうございます。運営が承認するまで、お仕事依頼の送信はできません。"
+                : "お仕事の依頼を送るには、依頼者(出版社・編集者・企業など)アカウントでのログインが必要です。"
+            }<br>
             あなた宛てに届いた依頼は<a href="egg-hatch-requests.html" style="color:var(--eh-gold);">こちら</a>から確認できます。
           </p>
         </div>

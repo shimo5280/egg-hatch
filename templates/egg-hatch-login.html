@@ -51,11 +51,13 @@
         <p class="eggApplyError" id="eggLoginError" hidden></p>
         <button type="submit" class="eggWorkApplyBtn">ログインする</button>
       </form>
+      {% if show_sample_hints %}
       <p class="eggApplyHint" style="margin-top:14px;">
         お試し用アカウント:<br>
         tachibana@example.com / password123(発案者)<br>
         kamiya@example.com / password123(応募者)
       </p>
+      {% endif %}
     </section>
 
     <section class="eggWorkBlock eggLoginPanel" id="eggLoginPanelRegister">

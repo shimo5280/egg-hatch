@@ -13,7 +13,7 @@ URLの形は、プロトタイプの頃から使っていた「?id=1」のよう
 形をそのまま踏襲しています(JavaScript側の書き換えを最小限にするため)。
 """
 
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, current_app
 
 pages_bp = Blueprint("pages", __name__)
 
@@ -56,7 +56,7 @@ def submit_page():
 
 @pages_bp.get("/egg-hatch-login.html")
 def login_page():
-    return render_template("egg-hatch-login.html")
+    return render_template("egg-hatch-login.html", show_sample_hints=current_app.config["SHOW_SAMPLE_HINTS"])
 
 
 # ---------------------------------------------------------------------------
@@ -102,6 +102,11 @@ def job_request_list_page():
     return render_template("egg-hatch-requests.html")
 
 
+@pages_bp.get("/egg-hatch-request-detail.html")
+def job_request_detail_page():
+    return render_template("egg-hatch-request-detail.html")
+
+
 # ---------------------------------------------------------------------------
 # 依頼者専用入口
 # ---------------------------------------------------------------------------
@@ -113,4 +118,4 @@ def client_entry_page():
 
 @pages_bp.get("/egg-hatch-client-login.html")
 def client_login_page():
-    return render_template("egg-hatch-client-login.html")
+    return render_template("egg-hatch-client-login.html", show_sample_hints=current_app.config["SHOW_SAMPLE_HINTS"])

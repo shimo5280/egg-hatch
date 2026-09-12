@@ -53,6 +53,20 @@
     `;
   }
 
+  function renderPendingApproval(currentUser) {
+    document.getElementById("eggClientEntryPage").innerHTML = `
+      <div class="eggApplyHead">
+        <p class="eggApplyEyebrow">依頼者ページ</p>
+        <h1 class="eggApplyWorkTitle">運営の承認をお待ちください</h1>
+        <p class="eggApplyHint">
+          ${escapeHtml(currentUser.display_name)} さん(${escapeHtml(currentUser.company_name || "個人")})のご登録、ありがとうございます。<br>
+          お仕事依頼を送信できるのは、運営が内容を確認して承認した依頼者アカウントのみです。
+          承認され次第、このアカウントでそのまま依頼を送れるようになります。
+        </p>
+      </div>
+    `;
+  }
+
   function renderClientDashboard(currentUser) {
     document.getElementById("eggClientEntryPage").innerHTML = `
       <div class="eggApplyHead">
@@ -83,8 +97,16 @@
       renderLoggedOut();
       return;
     }
-    if (currentUser.account_type === "client" || currentUser.account_type === "admin") {
+    if (currentUser.account_type === "admin") {
       renderClientDashboard(currentUser);
+      return;
+    }
+    if (currentUser.account_type === "client") {
+      if (currentUser.can_send_job_requests) {
+        renderClientDashboard(currentUser);
+      } else {
+        renderPendingApproval(currentUser);
+      }
       return;
     }
     renderGeneralUserNotice(currentUser);

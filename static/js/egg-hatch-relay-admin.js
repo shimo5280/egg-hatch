@@ -161,6 +161,23 @@
         </p>
         <div id="eggRelayStageList"><p class="eggRelayEmpty">読み込んでいます…</p></div>
       </section>
+
+      <section class="eggRelayAdminSection" id="eggRelayClientApprovalSection">
+        <h2 class="eggRelayAdminSectionTitle">⑤ 依頼者アカウントの承認</h2>
+        <p class="eggRelayAdminSectionHint">
+          登録しただけの依頼者アカウントは、お仕事依頼を送信できません。内容を確認し、問題なければ承認してください。
+        </p>
+        <div id="eggRelayClientApprovalList"><p class="eggRelayEmpty">読み込んでいます…</p></div>
+      </section>
+
+      <section class="eggRelayAdminSection" id="eggRelayJobRequestSection">
+        <h2 class="eggRelayAdminSectionTitle">⑥ 仕事依頼管理</h2>
+        <p class="eggRelayAdminSectionHint">
+          依頼者からの仕事依頼は、まずここに届きます。内容を確認し、問題なければメンバーへ通知してください。
+          メンバーの回答が出そろったら、成立／不成立を判断して依頼者へ結果を報告してください。
+        </p>
+        <div id="eggRelayJobRequestList"><p class="eggRelayEmpty">読み込んでいます…</p></div>
+      </section>
     `;
 
     if (season) {
@@ -175,6 +192,157 @@
       setupNewMangaForm(season);
       renderStageList(season);
     }
+    renderClientApprovalList();
+    renderJobRequestManagement();
+  }
+
+  async function renderClientApprovalList() {
+    const box = document.getElementById("eggRelayClientApprovalList");
+    let clients;
+    try {
+      clients = await EggAuth.apiFetch("/admin/clients");
+    } catch (e) {
+      box.innerHTML = `<p class="eggRelayEmpty">読み込みに失敗しました。</p>`;
+      return;
+    }
+
+    if (!clients.length) {
+      box.innerHTML = `<p class="eggRelayEmpty">依頼者アカウントの登録はまだありません。</p>`;
+      return;
+    }
+
+    box.innerHTML = clients
+      .map(
+        (c) => `
+        <div class="eggRelayAdminMangaRow" data-id="${c.id}">
+          <span class="eggRelayAdminMangaTitle">
+            ${escapeHtml(c.display_name)}${c.company_name ? `(${escapeHtml(c.company_name)})` : ""}
+          </span>
+          <span style="font-size:12px;color:var(--eh-text-muted);">${escapeHtml(c.email)}</span>
+          <span class="eggRelayStatusTag eggRelayStatusTag--${c.is_approved ? "accepted" : "pending"}">
+            ${c.is_approved ? "承認済み" : "未承認"}
+          </span>
+          <button type="button" class="eggRelayClientApprovalBtn" data-next="${c.is_approved ? "false" : "true"}">
+            ${c.is_approved ? "承認を取り消す" : "承認する"}
+          </button>
+        </div>`
+      )
+      .join("");
+
+    box.querySelectorAll(".eggRelayClientApprovalBtn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const row = btn.closest(".eggRelayAdminMangaRow");
+        const clientId = row.dataset.id;
+        const nextApproved = btn.dataset.next === "true";
+        btn.disabled = true;
+        try {
+          await EggAuth.apiFetch(`/admin/clients/${clientId}`, {
+            method: "PATCH",
+            body: JSON.stringify({ is_approved: nextApproved }),
+          });
+          renderClientApprovalList();
+        } catch (err) {
+          alert(err.message);
+          btn.disabled = false;
+        }
+      });
+    });
+  }
+
+  const JOB_REQUEST_STATUS_LABELS = {
+    pending_review: "運営確認待ち",
+    rejected: "却下",
+    awaiting_responses: "メンバー回答待ち",
+    reviewing_responses: "回答確認中",
+    finalized_success: "成立",
+    finalized_failure: "不成立",
+  };
+
+  function jobRequestRowHtml(jr) {
+    const recipientLines = jr.recipients
+      .map((r) => `${escapeHtml(r.display_name)}(ID:${r.id})：${r.response_status === "pending" ? "未回答" : r.response_status === "accepted" ? "承諾" : "辞退"}`)
+      .join(" / ");
+
+    const actions = [];
+    if (jr.status === "pending_review") {
+      actions.push(`<button type="button" class="eggRequestPrimaryAction" data-action="notify">メンバーへ通知</button>`);
+      actions.push(`<button type="button" class="eggRequestDangerAction" data-action="reject">依頼を却下</button>`);
+    }
+    if (jr.status === "awaiting_responses" || jr.status === "reviewing_responses") {
+      actions.push(`<button type="button" class="eggRequestPrimaryAction" data-action="finalize-success">成立として報告</button>`);
+      actions.push(`<button type="button" class="eggRequestDangerAction" data-action="finalize-failure">不成立として報告</button>`);
+    }
+
+    return `
+      <div class="eggRelayJobRequestRow" data-id="${jr.id}">
+        <div class="eggRelayJobRequestHead">
+          <span style="font-weight:700;">#${jr.id} ${escapeHtml(jr.title)}</span>
+          <span class="eggRequestStatusTag eggRequestStatusTag--${jr.status}">${escapeHtml(JOB_REQUEST_STATUS_LABELS[jr.status] || jr.status)}</span>
+        </div>
+        <p style="font-size:12px;color:var(--eh-text-muted);margin:0 0 6px;">
+          依頼者：${escapeHtml(jr.requester.display_name)}(ID:${jr.requester.id})
+          ／作成：${new Date(jr.created_at).toLocaleString("ja-JP")}
+        </p>
+        <p style="font-size:13px;margin:0 0 6px;white-space:pre-wrap;">${escapeHtml(jr.message || "(本文なし)")}</p>
+        <p style="font-size:12.5px;margin:0;"><strong>指定メンバーの回答状況：</strong>${recipientLines}</p>
+        ${actions.length ? `<div class="eggRelayJobRequestActions">${actions.join("")}</div>` : ""}
+      </div>`;
+  }
+
+  async function renderJobRequestManagement() {
+    const box = document.getElementById("eggRelayJobRequestList");
+    let jobRequests;
+    try {
+      jobRequests = await EggAuth.apiFetch("/admin/job-requests");
+    } catch (e) {
+      box.innerHTML = `<p class="eggRelayEmpty">読み込みに失敗しました。</p>`;
+      return;
+    }
+
+    if (!jobRequests.length) {
+      box.innerHTML = `<p class="eggRelayEmpty">仕事依頼はまだありません。</p>`;
+      return;
+    }
+
+    box.innerHTML = jobRequests.map(jobRequestRowHtml).join("");
+
+    box.querySelectorAll(".eggRelayJobRequestActions button").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const row = btn.closest(".eggRelayJobRequestRow");
+        const jobRequestId = row.dataset.id;
+        const action = btn.dataset.action;
+
+        let endpoint, body, confirmMsg;
+        if (action === "notify") {
+          endpoint = `/admin/job-requests/${jobRequestId}/notify`;
+          confirmMsg = "この内容でメンバーへ通知します。よろしいですか？";
+        } else if (action === "reject") {
+          endpoint = `/admin/job-requests/${jobRequestId}/reject`;
+          confirmMsg = "この依頼を却下します。メンバーには一切通知されません。よろしいですか？";
+        } else if (action === "finalize-success") {
+          endpoint = `/admin/job-requests/${jobRequestId}/finalize`;
+          body = { result: "success" };
+          confirmMsg = "この依頼を「成立」として依頼者へ報告します。よろしいですか？";
+        } else if (action === "finalize-failure") {
+          endpoint = `/admin/job-requests/${jobRequestId}/finalize`;
+          body = { result: "failure" };
+          confirmMsg = "この依頼を「不成立」として依頼者へ報告します。よろしいですか？";
+        } else {
+          return;
+        }
+
+        if (!window.confirm(confirmMsg)) return;
+
+        row.querySelectorAll("button").forEach((b) => (b.disabled = true));
+        try {
+          await EggAuth.apiFetch(endpoint, { method: "POST", body: body ? JSON.stringify(body) : undefined });
+          renderJobRequestManagement();
+        } catch (err) {
+          alert(err.message);
+          row.querySelectorAll("button").forEach((b) => (b.disabled = false));
+        }
+      });
+    });
   }
 
   function setupNewSeasonForm() {
