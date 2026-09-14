@@ -337,6 +337,49 @@ body {
   .eggHatchSectionTitle {
     font-size: 20px;
   }
+
+  /* 【修正】ロゴ・タイトル・説明文が、デスクトップ用の固定px座標(left:522px等)で
+     配置されていたため、画面幅の狭いスマートフォンでは画面の外まではみ出し、
+     横スクロール(左右にスライドするような挙動)が発生していた。
+     スマホでは絶対配置をやめ、通常の流れで縦に中央寄せして表示する。 */
+  .eggHatchBackground {
+    min-height: auto;
+    padding: 28px 20px 36px;
+    box-sizing: border-box;
+    text-align: center;
+    overflow: hidden;
+  }
+  .eggHatchBgImage {
+    position: static;
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 220px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  .eggHatchLogo {
+    position: static;
+    display: block;
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 10px;
+  }
+  .eggHatchTitle {
+    position: static;
+    display: block;
+    font-size: 20px;
+    line-height: 1.5;
+    margin: 0 0 10px;
+  }
+  .eggHatchDescription {
+    position: static;
+    display: block;
+    font-size: 13.5px;
+    line-height: 1.8;
+    margin: 0;
+  }
 }
 
 /* ▲▲▲ ここまで追加 ▲▲▲ */
@@ -445,4 +488,27 @@ body {
 .eggClientEntry--floating:hover {
   border-color: var(--eh-gold, #8A6A00);
   color: var(--eh-gold, #8A6A00);
+}
+
+/* 【追加】右上に固定表示していたバッジ類が、狭い画面では画面外へはみ出したり
+   重なったりしていたため、スマートフォンでは位置・幅を調整する。
+   (.eggAuthStatus--floating / .eggClientEntry--floating の元の定義より
+   あとに書くことで、この上書きが効くようにしている) */
+@media (max-width: 720px) {
+  .eggAuthStatus--floating {
+    top: 8px;
+    right: 8px;
+    font-size: 10px;
+    padding: 4px 8px;
+    max-width: 46vw;
+  }
+  .eggClientEntry--floating {
+    top: 40px;
+    right: 8px;
+    left: 8px;
+    max-width: none;
+    white-space: normal;
+    text-align: center;
+    font-size: 10px;
+  }
 }
